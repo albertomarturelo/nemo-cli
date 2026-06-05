@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.pyright/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# OS / editors
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# Claude Code local-only settings (per-user permissions, etc.)
+.claude/settings.local.json
+
+# CFD current project status — managed locally, not shared in the repo
+docs/CURRENT_STATUS.md
