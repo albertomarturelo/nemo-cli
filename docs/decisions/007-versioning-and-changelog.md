@@ -32,8 +32,11 @@ will read `nemo instruments … --json`) needs to pin a known surface.
   - **MINOR** — new subcommand, new flag, or new field in `--json`.
   - **PATCH** — bug fixes, internal refactors, doc updates, or dependency
     bumps with no surface change.
-  - We start at `0.1.0`. While at `0.x.y`, MINOR bumps may carry breaking
+  - We start at `0.0.1`. While at `0.x.y`, MINOR bumps may carry breaking
     changes, but they must be called out explicitly in the changelog.
+    The `0.0.x` range additionally signals that even PATCH bumps may
+    change the public surface without notice — promotion to `0.1.0` is
+    the signal that the surface stabilises into normal SemVer.
 
 - **Changelog follows [Keep a Changelog 1.1.0](https://keepachangelog.com/).**
   - File: `CHANGELOG.md` at the repo root.
@@ -79,11 +82,13 @@ will read `nemo instruments … --json`) needs to pin a known surface.
 
 - Every PR that touches surface or fixes a bug adds a line to
   `## [Unreleased]`. Small overhead per PR; large benefit at release time.
-- The first release will be **`v0.1.0`**, capturing the current state of
-  `main` (auth + instruments listing + CFD scaffolding + skills + GitHub Flow
-  + versioning policy). The timing of the cut is **user-signaled**, not
-  automatic on PR merge — until the user requests it, entries continue to
-  accumulate under `## [Unreleased]` in `CHANGELOG.md`.
+- The first release on TestPyPI is **`v0.0.1`**, capturing the current
+  state of `main`. The `0.0.x` range is the public signal that the
+  surface is experimental; downstream consumers should pin exact
+  versions rather than ranges until we cut `0.1.0`. The timing of each
+  cut is **user-signaled**, not automatic on PR merge — until the user
+  requests it, entries continue to accumulate under `## [Unreleased]`
+  in `CHANGELOG.md`.
 - Future agent / SDK consumers have a stable promise: a `nemo-cli >= a, < b`
   pin actually means something.
 - Release PRs are tiny and mechanical; no surprise behaviour.
