@@ -8,6 +8,22 @@ Versioning policy and release process: [ADR-007](docs/decisions/007-versioning-a
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-06-04
+
+Cuts the path from TestPyPI to PyPI prod. No CLI surface change.
+
+### Added
+
+- **`publish-to-pypi` job** in `.github/workflows/publish.yml` — same
+  Trusted Publishing pattern as TestPyPI but gated on the `pypi`
+  GitHub environment with required reviewers, so PyPI prod releases
+  require a one-click approval after the workflow reaches the publish
+  step. The two jobs run sequentially (`testpypi` first, `pypi` after)
+  off the same build, so a failed TestPyPI upload short-circuits the
+  prod publish.
+- Workflow renamed `Publish to TestPyPI` → `Publish` to reflect the
+  dual-target nature.
+
 ## [0.0.1] - 2026-06-04
 
 Initial public release on TestPyPI. The CLI is functional but versioned
@@ -72,5 +88,6 @@ notice until `0.1.0` (see ADR-007).
 - **GitHub Flow** as the project branching strategy. (ADR-005)
 - **Versioning policy** — SemVer + Keep a Changelog. (ADR-007)
 
-[Unreleased]: https://github.com/albertomarturelo/nemo-cli/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/albertomarturelo/nemo-cli/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/albertomarturelo/nemo-cli/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/albertomarturelo/nemo-cli/releases/tag/v0.0.1
