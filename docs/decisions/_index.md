@@ -23,6 +23,8 @@
 | 020 | [Review the PR against context, not intent discovery](020-pr-review-against-context.md) | Accepted | 2026-06-16 |
 | 021 | [Work units live in GitHub Issues with a fixed body template](021-work-units-external-tracker.md) | Accepted | 2026-06-16 |
 | 022 | [No AI-attribution metadata in commits and PRs](022-no-ai-attribution.md) | Accepted (amends ADR-005 §4) | 2026-06-16 |
+| 023 | [Continuous Integration via GitHub Actions](023-continuous-integration.md) | Accepted | 2026-06-16 |
+| 024 | [Repository governance: security, contribution, templates](024-repository-governance.md) | Accepted | 2026-06-16 |
 
 ## CFD methodology ADRs
 
