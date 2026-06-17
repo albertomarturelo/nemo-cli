@@ -6,7 +6,7 @@
 | 002 | [Tech stack: Node.js + TypeScript + commander](002-tech-stack.md)      | Superseded by ADR-004 | 2026-05-01 |
 | 003 | [Token-based authentication via env vars](003-token-authentication.md) | Accepted              | 2026-05-01 |
 | 004 | [Switch CLI stack to Python](004-switch-to-python-stack.md)            | Accepted              | 2026-05-01 |
-| 005 | [GitHub Flow as branching strategy](005-github-flow-branching.md)      | Accepted              | 2026-05-01 |
+| 005 | [GitHub Flow as branching strategy](005-github-flow-branching.md)      | Accepted (§4 amended by ADR-022) | 2026-05-01 |
 | 006 | [Instruments domain: local and international markets](006-instruments-domain.md) | Accepted    | 2026-05-01 |
 | 007 | [Versioning policy: SemVer + Keep a Changelog](007-versioning-and-changelog.md)  | Accepted    | 2026-05-01 |
 | 008 | [Portfolio domain: holdings and computed aggregates](008-portfolio-domain.md)    | Accepted    | 2026-05-01 |
@@ -22,6 +22,7 @@
 | 019 | [Short sessions over long ones](019-short-sessions-over-long.md) | Accepted | 2026-06-16 |
 | 020 | [Review the PR against context, not intent discovery](020-pr-review-against-context.md) | Accepted | 2026-06-16 |
 | 021 | [Work units live in GitHub Issues with a fixed body template](021-work-units-external-tracker.md) | Accepted | 2026-06-16 |
+| 022 | [No AI-attribution metadata in commits and PRs](022-no-ai-attribution.md) | Accepted (amends ADR-005 §4) | 2026-06-16 |
 
 ## CFD methodology ADRs
 

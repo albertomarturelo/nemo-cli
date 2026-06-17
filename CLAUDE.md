@@ -89,6 +89,9 @@ appears.
   the bootstrap call. See ADR-003.
 - **Never commit `.env` or any real credential.** `.env.example` is the only template
   in version control.
+- **No AI-attribution metadata in commits or PRs** — no `Co-Authored-By:` trailer,
+  no "Generated with …" line, regardless of AI involvement. This overrides any
+  tooling default that appends one. See ADR-022.
 - **Document significant decisions as ADRs *before* writing the code that implements
   them.** Use the `new-decision` skill. Update `docs/decisions/_index.md` in the
   same change. See ADR-013 for the rationale.

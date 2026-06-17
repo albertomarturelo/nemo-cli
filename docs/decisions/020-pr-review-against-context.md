@@ -58,8 +58,6 @@ echoing ADR-016.
 - Review quality depends on the indices being current; stale `CONVENTIONS.md` or
   out-of-date ADRs poison the review. Mitigated by `/validate-context` and the
   ADR-016 discipline.
-- One known drift to reconcile: ADR-005 §4 still prescribes a `Co-Authored-By`
-  footer on AI-assisted squash commits, while the recreated repo deliberately
-  carries none. The checklist cites ADR-005 for commit/PR conventions but does
-  **not** assert the footer rule until that conflict is resolved by amending or
-  superseding ADR-005.
+- The commit/PR attribution question (ADR-005 §4 footer vs the repo's
+  no-attribution practice) was **resolved by ADR-022**: no AI-attribution
+  metadata in commits or PRs. The `review-pr` checklist asserts that rule.
