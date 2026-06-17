@@ -13,3 +13,24 @@
 | 010 | [Instrument price history: nemo instruments prices](010-instrument-price-history.md) | Accepted | 2026-05-01 |
 | 011 | [Portfolio movements with classification and dividend parsing](011-portfolio-movements.md) | Accepted | 2026-05-01 |
 | 012 | [Refresh-token flow: proactive renewal + reactive fallback](012-refresh-token-flow.md) | Accepted | 2026-05-02 |
+| 013 | [Write the ADR before implementing the decision](013-adr-before-implementing.md) | Accepted | 2026-06-16 |
+| 014 | [English as the context language](014-english-as-context-language.md) | Accepted | 2026-06-16 |
+| 015 | [CFD procedures are Claude Skills, not slash commands](015-skills-over-slash-commands.md) | Accepted | 2026-06-16 |
+| 016 | [Document the convention, not just the fix](016-document-corrections-not-fixes.md) | Accepted | 2026-06-16 |
+| 017 | [Atomic task instructions for AI sessions](017-atomic-task-instructions.md) | Accepted | 2026-06-16 |
+| 018 | [The session-close ritual](018-session-close-ritual.md) | Accepted | 2026-06-16 |
+| 019 | [Short sessions over long ones](019-short-sessions-over-long.md) | Accepted | 2026-06-16 |
+| 020 | [Review the PR against context, not intent discovery](020-pr-review-against-context.md) | Accepted | 2026-06-16 |
+| 021 | [Work units live in GitHub Issues with a fixed body template](021-work-units-external-tracker.md) | Accepted | 2026-06-16 |
+
+## CFD methodology ADRs
+
+ADRs 013–021 were adopted from the [Context-First Development shareable ADR
+catalog](https://github.com/albertomarturelo/context-first-development/tree/main/adrs)
+on 2026-06-16. They record the *process* decisions behind how this project is
+developed (001–012 record *product/architecture* decisions). All but ADR-021
+formalize practices nemo-cli already followed. Catalog entries that contradict
+existing decisions were deliberately **not** adopted: repository-pattern and
+layered-clean-architecture (covered by ADR-001), integration-over-mocks
+(contradicts the `respx` testing convention in `CONVENTIONS.md`), and
+trunk-based-with-release-candidates (contradicts ADR-005, GitHub Flow).
