@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests + Lint (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install (editable + dev extras)
+        run: python -m pip install --upgrade pip && pip install -e .[dev]
+
+      - name: pytest
+        run: pytest
+
+      - name: ruff check
+        run: ruff check .
+
+  types:
+    name: Types (pyright strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install (editable + dev extras)
+        run: python -m pip install --upgrade pip && pip install -e .[dev]
+
+      - name: pyright
+        run: pyright
+
+  validate-context:
+    name: Validate context (ADRs + api_request boundary + PII)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ADR index integrity
+        # Every docs/decisions/NNN-*.md must be listed in _index.md, and every
+        # link from _index.md must point to a real file (the /validate-context
+        # skill, check #3).
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in docs/decisions/[0-9]*.md; do
+            name=$(basename "$f")
+            if ! grep -q "$name" docs/decisions/_index.md; then
+              echo "::error file=docs/decisions/_index.md::ADR $name exists on disk but is not listed in the index."
+              fail=1
+            fi
+          done
+          while IFS= read -r ref; do
+            if [ -n "$ref" ] && [ ! -f "$ref" ]; then
+              echo "::error file=docs/decisions/_index.md::Index links to a missing file: $ref"
+              fail=1
+            fi
+          done < <(grep -oE 'docs/decisions/[0-9]+-[a-zA-Z0-9-]+\.md' docs/decisions/_index.md | sort -u)
+          exit $fail
+
+      - name: ADR completeness (5 mandatory sections)
+        # House ADR format: Status, Context, Decision, Alternatives Considered,
+        # Consequences (Date is also present but not gated here).
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in docs/decisions/[0-9]*.md; do
+            for section in '## Status' '## Context' '## Decision' '## Alternatives Considered' '## Consequences'; do
+              if ! grep -qxF "$section" "$f"; then
+                echo "::error file=$f::Missing required ADR section '$section'."
+                fail=1
+              fi
+            done
+          done
+          exit $fail
+
+      - name: api_request() boundary (ADR-003)
+        # All Vector-portal HTTP must go through api_request(); the only files
+        # allowed to touch httpx directly are the client and the auth bootstrap.
+        run: |
+          set -euo pipefail
+          if git grep -nE 'httpx\.(request|get|post|put|delete|patch|stream|Client|AsyncClient)' -- 'src/' ':!src/nemo_cli/api/client.py' ':!src/nemo_cli/auth/service.py'; then
+            echo "::error::Direct httpx use outside api_request()/sign_in — ADR-003 forbids. Route the call through api_request() in src/nemo_cli/api/client.py."
+            exit 1
+          fi
+          echo "ADR-003 guard: no direct httpx use outside the allowed files."
+
+      - name: PII guard (no real RUTs in tracked files)
+        # CONVENTIONS forbids real PII in committed files. The synthetic dummy
+        # RUT (12.345.678-*) is allowed in tests/docs. Real RUT digit-bodies
+        # live in the PII_RUT_DENYLIST secret (pipe-separated 8-digit bodies, no
+        # dots/DV) — kept out of this public file. On forks the secret is unset
+        # and this step is skipped.
+        env:
+          PII_RUT_DENYLIST: ${{ secrets.PII_RUT_DENYLIST }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PII_RUT_DENYLIST:-}" ]; then
+            echo "PII guard: no denylist secret configured (fork or unset) — skipping."
+            exit 0
+          fi
+          if git grep -nE "$PII_RUT_DENYLIST" -- src/ tests/ docs/ pyproject.toml; then
+            echo "::error::Real RUT digits found in tracked files — PII leak per CONVENTIONS. Use a synthetic value (e.g. 12.345.678-0)."
+            exit 1
+          fi
+          echo "PII guard: no forbidden RUT digits found."

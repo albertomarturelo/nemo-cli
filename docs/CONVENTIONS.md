@@ -114,6 +114,10 @@ When you discover a new slow endpoint:
   helpers and parsers are expected to be 100%; the only acceptable misses
   are unreachable entry-point code (`__main__.py`, `cli.main()` body) and
   rare display branches (e.g. pagination hint when more pages remain).
+- **CI** (`.github/workflows/ci.yml`, ADR-023) runs `pytest`, `ruff check`,
+  and `pyright` on every PR and push to `main`, plus a `validate-context`
+  job enforcing ADR index/completeness and the `api_request()` boundary
+  (ADR-003). Run all three locally before opening a PR.
 
 ## CFD workflow (Skills)
 

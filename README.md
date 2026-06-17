@@ -1,5 +1,7 @@
 # nemo-cli
 
+[![CI](https://github.com/albertomarturelo/nemo-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/albertomarturelo/nemo-cli/actions/workflows/ci.yml)
+
 A personal command-line tool to inspect your holdings on Chilean stockbroker portals. Authenticates with your own credentials, caches a bearer token locally, and exposes portal operations as composable terminal commands.
 
 > **Disclaimer.** This project is **not affiliated, endorsed, or sponsored** by Vector Capital S.A. Corredores de Bolsa or any other broker. It is a personal, unofficial client and is provided "as is", without any warranty. You are the sole responsible party for compliance with your contract with the broker whose portal you connect to. The CLI calls only documented endpoints reachable from the official web UI under your own session, with your own credentials, and never redistributes data. Currently compatible with the Vector Capital client portal at `portalclientes.vectorcapital.cl`.
@@ -170,9 +172,10 @@ What the suite covers:
 - CLI commands via `typer.testing.CliRunner` — table output, args passthrough, `--json` envelope shape, error paths exit `1`.
 
 Conventions for adding tests live in
-[`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) (testing section). There is
-**no CI/CD configured** at the moment — checks run locally before opening
-a PR.
+[`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) (testing section). **CI runs
+`pytest`, `ruff check`, and `pyright` on every PR and push to `main`**
+(`.github/workflows/ci.yml`, see [ADR-023](docs/decisions/023-continuous-integration.md));
+run them locally before opening a PR.
 
 ## Project Structure
 
@@ -258,3 +261,5 @@ Before ending, run the `/close-session` skill — it performs the non-negotiable
 - Credentials never touch disk through this CLI. They are read from `os.environ` at command time.
 - Only the bearer token is persisted, in a per-user JSON file under your OS config directory.
 - Run `nemo logout` (or delete the JSON file) to revoke the local session at any time.
+
+To report a vulnerability, see [`SECURITY.md`](SECURITY.md) (private reporting — please do not open a public issue). Contribution scope is described in [`CONTRIBUTING.md`](CONTRIBUTING.md).
