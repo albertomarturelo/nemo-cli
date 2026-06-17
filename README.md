@@ -184,13 +184,16 @@ run them locally before opening a PR.
 ├── CLAUDE.md                       # Index of agent-facing context
 ├── CHANGELOG.md                    # Keep a Changelog (see Versioning)
 ├── context-first-development.md    # CFD methodology
+├── CONTRIBUTING.md                 # Contribution scope (MIT, no external PRs)
+├── SECURITY.md                     # Vulnerability reporting policy
 ├── pyproject.toml                  # Project metadata, deps, entry point
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── STACK.md
 │   ├── CONVENTIONS.md
 │   ├── session-flow.md             # CFD session flows (Mermaid diagrams)
-│   └── decisions/                  # Architecture Decision Records (incl. CFD process ADRs 013–021)
+│   └── decisions/                  # Architecture Decision Records (incl. CFD process ADRs 013–024)
+├── .github/                        # CI workflow (ci.yml) + PR / issue templates
 ├── .claude/skills/                 # CFD skills (start/close-session, status, new-decision, validate-context, review-pr, issue-new/start)
 ├── src/nemo_cli/
 │   ├── cli.py, __main__.py         # Entry + Typer app

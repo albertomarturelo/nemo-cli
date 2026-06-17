@@ -20,11 +20,13 @@
 
 ## Dev dependencies
 
-| Package    | Version  | Why                                                  |
-|------------|----------|------------------------------------------------------|
-| `pytest`   | ≥ 8.0    | Test runner                                          |
-| `pyright`  | ≥ 1.1    | Strict static type checking                          |
-| `ruff`     | ≥ 0.5    | Linting + import sorting                             |
+| Package      | Version  | Why                                                  |
+|--------------|----------|------------------------------------------------------|
+| `pytest`     | ≥ 8.0    | Test runner                                          |
+| `pytest-cov` | ≥ 5      | Coverage measurement + the CI ≥ 95% gate (ADR-023)   |
+| `pyright`    | ≥ 1.1    | Strict static type checking                          |
+| `ruff`       | ≥ 0.5    | Linting + import sorting                             |
+| `respx`      | ≥ 0.21   | Transport-level HTTP mocking in tests                |
 
 ## Why this stack
 
