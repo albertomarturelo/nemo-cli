@@ -8,10 +8,24 @@ files, in order, and do not scan source code unless a follow-up question require
 1. `docs/CURRENT_STATUS.md` — what is in progress, what is blocked, what is next.
 2. `docs/decisions/_index.md` — recent decisions that may affect the next change.
 
+3. **If `CURRENT_STATUS.md` references in-progress work by issue number** (e.g.
+   `#142`), load that unit of work (ADR-021):
+
+   ```bash
+   gh issue view <n>
+   ```
+
+   Then read each ADR the issue lists under "ADRs to load" from
+   `docs/decisions/`. Do **not** read the files in the issue's "Target" section —
+   those are where the work goes, not where context comes from. If no issue is
+   referenced, skip this step and orient from `CURRENT_STATUS.md` alone.
+
 Then produce a brief (≤ 8 lines) summary covering:
 
 - What was being worked on in the previous session.
 - What is currently blocked and why.
+- The objective and acceptance checklist of the in-progress issue, if one was
+  loaded in step 3.
 - What the next priority should be, based on `CURRENT_STATUS.md` and any open
   questions noted there.
 

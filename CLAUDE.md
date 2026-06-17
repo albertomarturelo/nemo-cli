@@ -45,7 +45,9 @@ do not re-read it every session.
 
 Tracked locally only — `docs/CURRENT_STATUS.md` is gitignored, so each clone
 maintains its own working notes. Not loaded automatically; the CFD skills
-(`/start-session`, `/status`) read it from disk when present.
+`start-session` and `status` read it from disk at the start of a session, and
+`close-session` updates it before the end (see `docs/CONVENTIONS.md` § "CFD
+workflow" for the full procedure → skill map).
 
 ## Key Decisions
 
