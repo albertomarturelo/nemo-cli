@@ -117,7 +117,10 @@ When you discover a new slow endpoint:
 - **CI** (`.github/workflows/ci.yml`, ADR-023) runs `pytest`, `ruff check`,
   and `pyright` on every PR and push to `main`, plus a `validate-context`
   job enforcing ADR index/completeness and the `api_request()` boundary
-  (ADR-003). Run all three locally before opening a PR.
+  (ADR-003). Run all three locally before opening a PR. Third-party GitHub
+  Actions are pinned to a full commit SHA with a `# vX.Y.Z` comment
+  (supply-chain hardening); the first-party `pypa/gh-action-pypi-publish`
+  stays on its PyPA-recommended `@release/v1` ref.
 
 ## CFD workflow (Skills)
 
