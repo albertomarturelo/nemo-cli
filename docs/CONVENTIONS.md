@@ -115,6 +115,26 @@ When you discover a new slow endpoint:
   are unreachable entry-point code (`__main__.py`, `cli.main()` body) and
   rare display branches (e.g. pagination hint when more pages remain).
 
+## CFD workflow (Skills)
+
+Every CFD procedure is a **Claude Skill** under `.claude/skills/<name>/SKILL.md`
+— including the mandatory session boundaries (ADR-015 records why Skills, not
+slash commands). One primitive, one mental model; no slash-command duplicates.
+
+| Procedure                | Skill              | Implements         |
+|--------------------------|--------------------|--------------------|
+| Orient at session start  | `start-session`    | —                  |
+| Quick status read        | `status`           | —                  |
+| Close the session        | `close-session`    | ADR-018            |
+| Capture a decision (ADR) | `new-decision`     | ADR-013            |
+| Audit context integrity  | `validate-context` | —                  |
+| Review a PR              | `review-pr`        | ADR-020            |
+| Create a work unit       | `issue-new`        | ADR-021            |
+| Pick up a work unit      | `issue-start`      | ADR-021            |
+
+Work crossing session boundaries lives as a GitHub Issue with the fixed body
+template (ADR-021), not only in `CURRENT_STATUS.md`.
+
 ## Patterns we explicitly avoid
 
 - **No module-level mutable state** beyond the `dotenv.load_dotenv()` call in

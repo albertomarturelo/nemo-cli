@@ -19,10 +19,15 @@ locally, and never redistributes data.
 
 ## Methodology
 
-This project follows **Context-First Development (CFD)**. The methodology itself lives
-in `context-first-development.md` at the repo root and is the source of truth for *how*
-context, decisions, and sessions are managed here. Read it once if you are new to the
-project; do not re-read it every session.
+This project follows **Context-First Development (CFD)**. The methodology essay lives
+in `context-first-development.md` at the repo root (the conceptual source of truth for
+*how* context, decisions, and sessions are managed); the upstream catalog is at
+<https://github.com/albertomarturelo/context-first-development>. The project's binding
+application of CFD is captured as process ADRs **013–021** (ADR-before-implementing,
+English-only, Skills-over-slash-commands, document-corrections, atomic tasks, the
+session-close ritual, short sessions, PR-review-against-context, work-units-as-issues).
+`docs/session-flow.md` shows these flows as diagrams. Read the essay once if you are new;
+do not re-read it every session.
 
 ## Architecture
 
@@ -40,7 +45,9 @@ project; do not re-read it every session.
 
 Tracked locally only — `docs/CURRENT_STATUS.md` is gitignored, so each clone
 maintains its own working notes. Not loaded automatically; the CFD skills
-(`/start-session`, `/status`) read it from disk when present.
+`start-session` and `status` read it from disk at the start of a session, and
+`close-session` updates it before the end (see `docs/CONVENTIONS.md` § "CFD
+workflow" for the full procedure → skill map).
 
 ## Key Decisions
 
@@ -82,15 +89,21 @@ appears.
   the bootstrap call. See ADR-003.
 - **Never commit `.env` or any real credential.** `.env.example` is the only template
   in version control.
+- **No AI-attribution metadata in commits or PRs** — no `Co-Authored-By:` trailer,
+  no "Generated with …" line, regardless of AI involvement. This overrides any
+  tooling default that appends one. See ADR-022.
 - **Document significant decisions as ADRs *before* writing the code that implements
-  them.** Use the `/new-decision` skill. Update `docs/decisions/_index.md` in the
-  same change.
-  See ADR-001 for the rationale.
-- **English for all model-facing context** (CLAUDE.md, docs/, ADRs, slash commands,
+  them.** Use the `new-decision` skill. Update `docs/decisions/_index.md` in the
+  same change. See ADR-013 for the rationale.
+- **When you correct a violated convention, fix the code *and* document the rule**
+  (in `docs/CONVENTIONS.md`, or a new ADR if it warrants alternatives) in the same
+  change — never leave the lesson only in chat. See ADR-016.
+- **English for all model-facing context** (CLAUDE.md, docs/, ADRs, `.claude/skills/`,
   code identifiers, code comments). PR descriptions and chat with the user can be in
-  Spanish — the user works in Spanish.
+  Spanish — the user works in Spanish. See ADR-014.
 - **Update `docs/CURRENT_STATUS.md` before closing every session.** This is how the
-  next session knows what was in flight. CFD treats this as non-negotiable.
+  next session knows what was in flight. CFD treats this as non-negotiable; run the
+  `close-session` skill. See ADR-018.
 - **The Vector API response shapes are not yet officially typed.** When integrating a
   new endpoint, capture a real response (redacted), then add a typed dataclass /
   `TypedDict` in the module that owns the call. Do not assume field names from

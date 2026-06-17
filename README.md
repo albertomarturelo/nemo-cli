@@ -186,8 +186,9 @@ a PR.
 │   ├── ARCHITECTURE.md
 │   ├── STACK.md
 │   ├── CONVENTIONS.md
-│   └── decisions/                  # Architecture Decision Records
-├── .claude/skills/                 # CFD skills (start-session, status, new-decision, validate-context)
+│   ├── session-flow.md             # CFD session flows (Mermaid diagrams)
+│   └── decisions/                  # Architecture Decision Records (incl. CFD process ADRs 013–021)
+├── .claude/skills/                 # CFD skills (start/close-session, status, new-decision, validate-context, review-pr, issue-new/start)
 ├── src/nemo_cli/
 │   ├── cli.py, __main__.py         # Entry + Typer app
 │   ├── commands/                   # One module per subcommand (login, logout, whoami, instruments, portfolio)
@@ -212,7 +213,7 @@ is documented in [ADR-007](docs/decisions/007-versioning-and-changelog.md).
 
 ## Methodology
 
-This repository follows **Context-First Development (CFD)**. Architecture, conventions, and decisions live in [`docs/`](docs/); the methodology itself is documented in [`context-first-development.md`](context-first-development.md). When pairing with an AI agent, start with [`CLAUDE.md`](CLAUDE.md).
+This repository follows **Context-First Development (CFD)**. Architecture, conventions, and decisions live in [`docs/`](docs/); the methodology essay is in [`context-first-development.md`](context-first-development.md), and the upstream catalog is at [`context-first-development`](https://github.com/albertomarturelo/context-first-development). The project's binding application of CFD is captured as process ADRs **013–021** and visualised in [`docs/session-flow.md`](docs/session-flow.md). When pairing with an AI agent, start with [`CLAUDE.md`](CLAUDE.md).
 
 ### Starting a development session
 
@@ -235,16 +236,20 @@ claude
 
 `/start-session` reads `docs/CURRENT_STATUS.md` (a local-only file — see "Closing a session" below) and [`docs/decisions/_index.md`](docs/decisions/_index.md), and returns a short summary of what was in flight, what is blocked, and what the next priority should be. The other CFD skills shipped in [`.claude/skills/`](.claude/skills/):
 
-| Skill                | When to use                                                                                |
-|----------------------|--------------------------------------------------------------------------------------------|
-| `/start-session`     | At the start of every session — load current status + recent decisions.                    |
-| `/status`            | Quick "where are we" without the full orientation.                                         |
-| `/new-decision`      | Before implementing any significant technical choice — captures it as an ADR.              |
-| `/validate-context`  | Audit context-file integrity (CLAUDE.md size, @-references, ADR index, status freshness).  |
+| Skill                 | When to use                                                                                       |
+|-----------------------|---------------------------------------------------------------------------------------------------|
+| `/start-session`      | At the start of every session — load current status, recent decisions, and the in-progress issue. |
+| `/status`             | Quick "where are we" without the full orientation.                                                |
+| `/close-session`      | Before ending — run the non-negotiable close ritual (update status, capture new conventions/ADRs). |
+| `/new-decision`       | Before implementing any significant technical choice — captures it as an ADR (ADR-013).            |
+| `/validate-context`   | Audit context-file integrity (CLAUDE.md size, @-references, ADR index, English, status freshness). |
+| `/review-pr <n>`      | Review a PR against the project's ADR/CONVENTIONS checklist instead of re-discovering intent (ADR-020). |
+| `/issue-new`          | Open a unit of work as a GitHub issue with the fixed CFD template (ADR-021).                       |
+| `/issue-start <n>`    | Pick up an issue as the session's focus; pre-loads its ADRs and pattern to mirror (ADR-021).       |
 
 ### Closing a session
 
-Before ending, ask the agent to create or update `docs/CURRENT_STATUS.md` with what was done, what is still pending, and any blockers discovered. That file is the only thing the next session reads to know where work was left — skipping it breaks the loop.
+Before ending, run the `/close-session` skill — it performs the non-negotiable close ritual: update `docs/CURRENT_STATUS.md` with what was done, what is still pending, and any blockers discovered, plus capture any clarified convention or informal decision (ADR-018). That status file is the only thing the next session reads to know where work was left — skipping it breaks the loop.
 
 `docs/CURRENT_STATUS.md` is **gitignored on purpose** — it is working state, not a shared artifact, so each clone keeps its own notes. The file does not exist in a fresh clone; the first `/start-session` after `git clone` will simply have less context to summarise, and you create the file when you close the session.
 
