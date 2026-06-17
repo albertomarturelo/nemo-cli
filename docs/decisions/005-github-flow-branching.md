@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted — §4 amended by ADR-022 (2026-06-16): no `Co-Authored-By` footer.
 
 ## Date
 
@@ -39,8 +39,10 @@ Adopt **GitHub Flow** as the branching strategy:
    PR description references any relevant ADR or CFD context update.
 4. PRs are merged via **squash merge**. The squash commit message uses
    Conventional-Commits-style prefixes (`feat:`, `fix:`, `docs:`, `chore:`,
-   `refactor:`, `test:`) and ends with the standard `Co-Authored-By` footer when
-   the change is AI-assisted.
+   `refactor:`, `test:`). **Amended by ADR-022:** commits carry **no**
+   `Co-Authored-By` footer or AI-attribution metadata. (The original clause
+   required a `Co-Authored-By` footer for AI-assisted changes; ADR-022 dropped
+   it to match the repo's clean, human-authored history.)
 5. Branches are deleted on the GitHub side after merge.
 6. `main` is protected once GitHub branch protection is configured: no direct
    pushes, PRs required.

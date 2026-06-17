@@ -48,9 +48,9 @@ verification against known rules, not discovery.
 - Base branch is `main`; merge will be a squash with a Conventional-Commits title.
 - PR title is Conventional Commits and English.
 - PR body references `Closes #<n>` when an issue exists (ADR-021).
-- Note: ADR-005 §4 mentions a `Co-Authored-By` footer, but the repo currently
-  carries none. Flag any mismatch as a finding; do not assert either rule until
-  ADR-005 is reconciled (see ADR-020 Consequences).
+- **No AI-attribution metadata** anywhere — no `Co-Authored-By:` trailer and no
+  "Generated with …" line, in any commit or the PR body (ADR-022). Flag any that
+  appear.
 
 ### HTTP boundary (ADR-003, critical rule)
 
