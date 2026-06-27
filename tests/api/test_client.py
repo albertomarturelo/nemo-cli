@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import base64
 import json
-import time
+from collections.abc import Callable
 
 import httpx
 import pytest
@@ -18,38 +17,28 @@ REFRESH_URL = f"{API_BASE_URL}/publicapi/shared/auth/RefreshToken"
 ENDPOINT_URL = f"{API_BASE_URL}/shared/Some/Endpoint"
 
 
-def _jwt_with_exp(exp_offset_seconds: int) -> str:
-    """Build a minimal JWT whose `exp` is `now + exp_offset_seconds`.
-
-    Negative offsets produce already-expired tokens; large positive
-    offsets produce comfortably-fresh tokens.
-    """
-    header = base64.urlsafe_b64encode(b'{"alg":"none"}').rstrip(b"=").decode()
-    payload_dict = {"exp": int(time.time()) + exp_offset_seconds}
-    payload = (
-        base64.urlsafe_b64encode(json.dumps(payload_dict).encode())
-        .rstrip(b"=")
-        .decode()
-    )
-    return f"{header}.{payload}.signature"
-
-
 @pytest.fixture
-def fresh_jwt(isolated_token_store: object) -> str:  # noqa: ARG001 — fixture pins path
+def fresh_jwt(
+    isolated_token_store: object,  # noqa: ARG001 — fixture pins path
+    jwt_factory: Callable[[int], str],
+) -> str:
     """Pre-populate the store with a JWT that expires comfortably in the future."""
     from nemo_cli.auth.token_store import set_token
 
-    token = _jwt_with_exp(3600)
+    token = jwt_factory(3600)
     set_token(token)
     return token
 
 
 @pytest.fixture
-def expiring_jwt(isolated_token_store: object) -> str:  # noqa: ARG001
+def expiring_jwt(
+    isolated_token_store: object,  # noqa: ARG001
+    jwt_factory: Callable[[int], str],
+) -> str:
     """Pre-populate the store with a JWT that is already expired."""
     from nemo_cli.auth.token_store import set_token
 
-    token = _jwt_with_exp(-30)
+    token = jwt_factory(-30)
     set_token(token)
     return token
 

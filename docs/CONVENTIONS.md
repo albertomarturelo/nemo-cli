@@ -17,8 +17,9 @@
 
 - All requests to the Vector portal go through `api_request()` in
   `nemo_cli.api.client`. No `httpx.request(...)` calls in command handlers or
-  services. The only exception is `nemo_cli.auth.service.sign_in`, which is the
-  bootstrap call.
+  services. The only exceptions are the bootstrap calls in
+  `nemo_cli.auth.service` — `sign_in` and `refresh_token` — which `api_request`
+  itself relies on to obtain and renew the token (consistent with `CLAUDE.md`).
 - Endpoint paths passed to `api_request()` are *relative* to the configured base URL
   (e.g. `/shared/auth/SignIn`, not the full URL).
 - Response shapes from the Vector API are typed at the call site, in the module that
