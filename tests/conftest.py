@@ -8,20 +8,6 @@ import pytest
 
 
 @pytest.fixture
-def credentials_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Populate NEMO_USERNAME / NEMO_PASSWORD with deterministic test values."""
-    monkeypatch.setenv("NEMO_USERNAME", "test@example.com")
-    monkeypatch.setenv("NEMO_PASSWORD", "test-password")
-
-
-@pytest.fixture
-def no_credentials_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Remove credentials from the environment so load_credentials() fails."""
-    monkeypatch.delenv("NEMO_USERNAME", raising=False)
-    monkeypatch.delenv("NEMO_PASSWORD", raising=False)
-
-
-@pytest.fixture
 def isolated_token_store(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     """Redirect the token-cache file to a unique tmp path. Returns the file path."""
     token_dir = tmp_path / "nemo-cli"

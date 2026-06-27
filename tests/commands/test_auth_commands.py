@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from typer.testing import CliRunner
 
@@ -13,31 +12,50 @@ runner = CliRunner()
 
 
 class TestLoginCommand:
-    def test_login_success_caches_token(
-        self,
-        credentials_env: None,  # noqa: ARG002
-        isolated_token_store: Path,  # noqa: ARG002
-    ) -> None:
+    def test_prompts_for_credentials_when_no_flags(self) -> None:
         with patch(
             "nemo_cli.commands.login.sign_in", return_value="fresh.token"
-        ) as mock_signin, patch(
-            "nemo_cli.commands.login.set_token"
-        ) as mock_set:
-            result = runner.invoke(app, ["login"])
+        ) as mock_signin, patch("nemo_cli.commands.login.set_token") as mock_set:
+            result = runner.invoke(
+                app, ["login"], input="user@example.com\nsecret\n"
+            )
 
         assert result.exit_code == 0
         assert "Login successful" in result.output
-        mock_signin.assert_called_once_with()
+        mock_signin.assert_called_once_with("user@example.com", "secret")
         mock_set.assert_called_once_with("fresh.token")
 
-    def test_login_surfaces_signin_failure(
-        self, credentials_env: None  # noqa: ARG002
-    ) -> None:
+    def test_uses_flags_without_prompting(self) -> None:
+        with patch(
+            "nemo_cli.commands.login.sign_in", return_value="fresh.token"
+        ) as mock_signin, patch("nemo_cli.commands.login.set_token"):
+            result = runner.invoke(
+                app,
+                ["login", "--user", "flag@example.com", "--password", "flagpw"],
+            )
+
+        assert result.exit_code == 0
+        mock_signin.assert_called_once_with("flag@example.com", "flagpw")
+
+    def test_prompts_only_for_missing_password(self) -> None:
+        with patch(
+            "nemo_cli.commands.login.sign_in", return_value="fresh.token"
+        ) as mock_signin, patch("nemo_cli.commands.login.set_token"):
+            result = runner.invoke(
+                app, ["login", "--user", "flag@example.com"], input="promptpw\n"
+            )
+
+        assert result.exit_code == 0
+        mock_signin.assert_called_once_with("flag@example.com", "promptpw")
+
+    def test_surfaces_signin_failure(self) -> None:
         with patch(
             "nemo_cli.commands.login.sign_in",
             side_effect=RuntimeError("SignIn failed (401): bad credentials"),
         ):
-            result = runner.invoke(app, ["login"])
+            result = runner.invoke(
+                app, ["login", "--user", "u@example.com", "--password", "pw"]
+            )
 
         assert result.exit_code == 1
         assert "SignIn failed (401)" in result.output
@@ -57,43 +75,16 @@ class TestLogoutCommand:
 
 
 class TestWhoamiCommand:
-    def test_whoami_with_cached_token(
-        self,
-        credentials_env: None,  # noqa: ARG002
-    ) -> None:
-        with patch(
-            "nemo_cli.commands.whoami.get_token", return_value="cached"
-        ):
+    def test_reports_cached_token(self) -> None:
+        with patch("nemo_cli.commands.whoami.get_token", return_value="cached"):
             result = runner.invoke(app, ["whoami"])
 
         assert result.exit_code == 0
-        assert "test@example.com" in result.output
-        assert "cached" in result.output
+        assert "Token: cached" in result.output
 
-    def test_whoami_without_cached_token(
-        self,
-        credentials_env: None,  # noqa: ARG002
-    ) -> None:
-        with patch(
-            "nemo_cli.commands.whoami.get_token", return_value=None
-        ):
+    def test_reports_no_cached_token(self) -> None:
+        with patch("nemo_cli.commands.whoami.get_token", return_value=None):
             result = runner.invoke(app, ["whoami"])
 
         assert result.exit_code == 0
-        assert "test@example.com" in result.output
         assert "not cached" in result.output
-
-    def test_whoami_fails_when_credentials_missing(
-        self,
-        no_credentials_env: None,  # noqa: ARG002
-    ) -> None:
-        # No need to mock get_token; load_credentials() raises first.
-        # Use a MagicMock for get_token so it's not called accidentally.
-        with patch(
-            "nemo_cli.commands.whoami.get_token",
-            new=MagicMock(return_value=None),
-        ):
-            result = runner.invoke(app, ["whoami"])
-
-        assert result.exit_code == 1
-        assert "Missing credentials" in result.output

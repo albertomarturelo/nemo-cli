@@ -67,13 +67,10 @@ workflow" for the full procedure → skill map).
 
 ## Environment
 
-Credentials are loaded from environment variables (via `python-dotenv`). See
-`.env.example`.
-
-| Variable           | Required | Purpose                          |
-|--------------------|----------|----------------------------------|
-| `NEMO_USERNAME`  | yes      | Email used to sign in            |
-| `NEMO_PASSWORD`  | yes      | Password used to sign in         |
+There are **no credential environment variables**. Authenticate interactively with
+`nemo login` (or pass `--user` / `--password`); the credentials are sent to the
+`SignIn` endpoint and **never written to disk** — only the resulting bearer token is
+cached (ADR-025). There is no `.env` file and no `python-dotenv` dependency.
 
 The Vector API base URL is hardcoded in `nemo_cli.config.API_BASE_URL` — there is
 no env override (see ADR-004). Reintroduce one via a new ADR if a staging environment
@@ -85,10 +82,14 @@ appears.
   `src/nemo_cli/api/client.py`.** That function owns token retrieval, caching, and
   the 401-retry-after-refresh flow. Calling `httpx.request(...)` directly from a
   command bypasses re-authentication and will cause silent failures when tokens
-  expire. The only allowed exception is `nemo_cli.auth.service.sign_in`, which is
-  the bootstrap call. See ADR-003.
-- **Never commit `.env` or any real credential.** `.env.example` is the only template
-  in version control.
+  expire. The only allowed exceptions are the bootstrap calls in
+  `nemo_cli.auth.service` — `sign_in` (invoked by `nemo login`) and `refresh_token`.
+  On expiry `api_request()` renews via `RefreshToken`; if that fails it surfaces
+  `Session expired — run nemo login` rather than re-authenticating from stored
+  credentials (there are none). See ADR-003 and ADR-025.
+- **Never commit `.env` or any real credential.** The CLI reads no credential env
+  vars (ADR-025); credentials are entered interactively via `nemo login` and never
+  written to disk.
 - **No AI-attribution metadata in commits or PRs** — no `Co-Authored-By:` trailer,
   no "Generated with …" line, regardless of AI involvement. This overrides any
   tooling default that appends one. See ADR-022.

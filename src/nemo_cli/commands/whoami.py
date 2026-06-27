@@ -1,18 +1,16 @@
 import typer
 
 from nemo_cli.auth.token_store import get_token
-from nemo_cli.config import load_credentials
 
 
 def whoami() -> None:
-    """Show the configured user and whether a token is currently cached."""
-    try:
-        credentials = load_credentials()
-    except Exception as error:
-        typer.secho(str(error), fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from error
-    typer.echo(f"User:    {credentials.user_name}")
+    """Show whether an authentication token is currently cached.
+
+    Since credentials are no longer read from the environment (ADR-025), there
+    is no configured user to display. Surfacing the signed-in identity from the
+    token is tracked separately as the "Rich whoami" work unit.
+    """
     if get_token():
-        typer.secho("Token:   cached", fg=typer.colors.GREEN)
+        typer.secho("Token: cached", fg=typer.colors.GREEN)
     else:
-        typer.secho("Token:   not cached (run `nemo login`)", fg=typer.colors.YELLOW)
+        typer.secho("Token: not cached (run `nemo login`)", fg=typer.colors.YELLOW)
