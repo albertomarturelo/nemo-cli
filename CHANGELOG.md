@@ -8,6 +8,13 @@ Versioning policy and release process: [ADR-007](docs/decisions/007-versioning-a
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-26
+
+Promotes the CLI out of the experimental `0.0.x` range into normal SemVer
+(ADR-007). This release also lands a breaking overhaul of the authentication
+surface — see **Changed** / **Removed**; from `0.1.0` onward, breaking changes
+are reflected in the version per SemVer.
+
 ### Added
 
 - **`nemo auth` command group** — the authentication verbs are now grouped under
@@ -104,5 +111,6 @@ notice until `0.1.0` (see ADR-007).
 - **GitHub Flow** as the project branching strategy. (ADR-005)
 - **Versioning policy** — SemVer + Keep a Changelog. (ADR-007)
 
-[Unreleased]: https://github.com/albertomarturelo/nemo-cli/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/albertomarturelo/nemo-cli/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/albertomarturelo/nemo-cli/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/albertomarturelo/nemo-cli/releases/tag/v0.0.1
