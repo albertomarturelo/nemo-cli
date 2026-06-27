@@ -2,9 +2,17 @@
 
 ## File and module layout
 
-- One subcommand per module under `src/nemo_cli/commands/`. The module exports a
-  single function named after the verb (e.g. `login`, `logout`). `nemo_cli.cli`
-  registers it via `app.command()(login)`.
+- One subcommand verb per module under `src/nemo_cli/commands/`. The module
+  exports a single function named after the verb (e.g. `login`, `logout`,
+  `status`).
+- **Commands are organised into groups**, each a `typer.Typer` sub-app registered
+  in `nemo_cli.cli` via `app.add_typer(<group>_app, name="<group>")`. The current
+  groups are `auth` (`login` / `logout` / `status`), `instruments`, and
+  `portfolio` — there are no flat top-level subcommands. A group's module exposes
+  `app`: either it defines the verbs inline (`instruments.py`, `portfolio.py`) or,
+  when the verbs live in their own modules, a thin assembler wires them in
+  (`auth.py` imports `login` / `logout` / `status` and calls `app.command()(...)`
+  on each — ADR-027).
 - Module names are `snake_case.py`. Function and variable names are `snake_case`,
   classes `PascalCase`, constants `UPPER_SNAKE_CASE`.
 - Imports are absolute (`from nemo_cli.api.client import api_request`), never
