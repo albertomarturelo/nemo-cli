@@ -56,7 +56,7 @@ When you discover a new slow endpoint:
 
 ## Authentication
 
-- Credentials are entered interactively via `nemo login` (or the `--user` /
+- Credentials are entered interactively via `nemo auth login` (or the `--user` /
   `--password` flags) and passed explicitly to `sign_in()`. They are read from no
   environment variable and **never written to disk** by this CLI (ADR-025).
 - The bearer token is cached as JSON at
@@ -65,7 +65,7 @@ When you discover a new slow endpoint:
 - Token renewal is the `RefreshToken` flow (ADR-012): proactive renewal when the
   cached JWT is within 60s of expiry, and a reactive renewal on `401`. When
   `RefreshToken` itself fails (or there is no cached token), `api_request()` raises
-  `Session expired — run nemo login` and exits — it does **not** re-`SignIn`, since
+  `Session expired — run nemo auth login` and exits — it does **not** re-`SignIn`, since
   no credentials are stored (ADR-025, amending ADR-003 / ADR-012).
 
 ## Error handling
@@ -153,8 +153,8 @@ template (ADR-021), not only in `CURRENT_STATUS.md`.
 - **No module-level mutable state.** Pass dependencies as arguments where it would
   otherwise be tempting. (The former `dotenv.load_dotenv()` call in `config` is gone
   — ADR-025.)
-- **No silent fallbacks** for missing auth — `nemo login` prompts for any credential
+- **No silent fallbacks** for missing auth — `nemo auth login` prompts for any credential
   not supplied, and a command run without a cached token fails loudly with
-  `Session expired — run nemo login` rather than silently re-authenticating.
+  `Session expired — run nemo auth login` rather than silently re-authenticating.
 - **No new third-party HTTP / config dependencies** without an ADR. The current set
   is intentionally minimal.

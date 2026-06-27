@@ -68,7 +68,7 @@ workflow" for the full procedure → skill map).
 ## Environment
 
 There are **no credential environment variables**. Authenticate interactively with
-`nemo login` (or pass `--user` / `--password`); the credentials are sent to the
+`nemo auth login` (or pass `--user` / `--password`); the credentials are sent to the
 `SignIn` endpoint and **never written to disk** — only the resulting bearer token is
 cached (ADR-025). There is no `.env` file and no `python-dotenv` dependency.
 
@@ -83,12 +83,12 @@ appears.
   the 401-retry-after-refresh flow. Calling `httpx.request(...)` directly from a
   command bypasses re-authentication and will cause silent failures when tokens
   expire. The only allowed exceptions are the bootstrap calls in
-  `nemo_cli.auth.service` — `sign_in` (invoked by `nemo login`) and `refresh_token`.
+  `nemo_cli.auth.service` — `sign_in` (invoked by `nemo auth login`) and `refresh_token`.
   On expiry `api_request()` renews via `RefreshToken`; if that fails it surfaces
-  `Session expired — run nemo login` rather than re-authenticating from stored
+  `Session expired — run nemo auth login` rather than re-authenticating from stored
   credentials (there are none). See ADR-003 and ADR-025.
 - **Never commit `.env` or any real credential.** The CLI reads no credential env
-  vars (ADR-025); credentials are entered interactively via `nemo login` and never
+  vars (ADR-025); credentials are entered interactively via `nemo auth login` and never
   written to disk.
 - **No AI-attribution metadata in commits or PRs** — no `Co-Authored-By:` trailer,
   no "Generated with …" line, regardless of AI involvement. This overrides any

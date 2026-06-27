@@ -9,8 +9,8 @@ from nemo_cli.config import API_BASE_URL
 
 # Surfaced when there is no usable token and no way to renew it. With
 # credentials no longer stored anywhere (ADR-025), the only path back into the
-# system is an explicit `nemo login`.
-_SESSION_EXPIRED_MESSAGE = "Session expired — run `nemo login` to authenticate."
+# system is an explicit `nemo auth login`.
+_SESSION_EXPIRED_MESSAGE = "Session expired — run `nemo auth login` to authenticate."
 
 
 def _ensure_token() -> str:

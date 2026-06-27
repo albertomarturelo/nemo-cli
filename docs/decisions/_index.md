@@ -25,8 +25,9 @@
 | 022 | [No AI-attribution metadata in commits and PRs](022-no-ai-attribution.md) | Accepted (amends ADR-005 §4) | 2026-06-16 |
 | 023 | [Continuous Integration via GitHub Actions](023-continuous-integration.md) | Accepted | 2026-06-16 |
 | 024 | [Repository governance: security, contribution, templates](024-repository-governance.md) | Accepted | 2026-06-16 |
-| 025 | [Interactive login replacing env-var credentials](025-interactive-login.md) | Accepted (amends ADR-003) | 2026-06-26 |
-| 026 | [Auth session layer: encapsulate login and expose status](026-auth-session-layer.md) | Accepted | 2026-06-26 |
+| 025 | [Interactive login replacing env-var credentials](025-interactive-login.md) | Accepted (amends ADR-003; command surface amended by ADR-027) | 2026-06-26 |
+| 026 | [Auth session layer: encapsulate login and expose status](026-auth-session-layer.md) | Accepted (command surface amended by ADR-027) | 2026-06-26 |
+| 027 | [Group auth commands under `nemo auth`; remove `whoami`](027-auth-command-group.md) | Accepted (amends ADR-025/026 surface) | 2026-06-26 |
 
 ## CFD methodology ADRs
 

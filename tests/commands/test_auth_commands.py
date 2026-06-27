@@ -1,4 +1,4 @@
-"""Tests for the login / logout / whoami CLI commands."""
+"""Tests for the `nemo auth` command group (login / logout / status)."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class TestLoginCommand:
     def test_prompts_for_credentials_when_no_flags(self) -> None:
         with patch("nemo_cli.commands.login.log_in") as mock_login:
             result = runner.invoke(
-                app, ["login"], input="user@example.com\nsecret\n"
+                app, ["auth", "login"], input="user@example.com\nsecret\n"
             )
 
         assert result.exit_code == 0
@@ -27,7 +27,7 @@ class TestLoginCommand:
         with patch("nemo_cli.commands.login.log_in") as mock_login:
             result = runner.invoke(
                 app,
-                ["login", "--user", "flag@example.com", "--password", "flagpw"],
+                ["auth", "login", "--user", "flag@example.com", "--password", "flagpw"],
             )
 
         assert result.exit_code == 0
@@ -36,7 +36,9 @@ class TestLoginCommand:
     def test_prompts_only_for_missing_password(self) -> None:
         with patch("nemo_cli.commands.login.log_in") as mock_login:
             result = runner.invoke(
-                app, ["login", "--user", "flag@example.com"], input="promptpw\n"
+                app,
+                ["auth", "login", "--user", "flag@example.com"],
+                input="promptpw\n",
             )
 
         assert result.exit_code == 0
@@ -48,7 +50,7 @@ class TestLoginCommand:
             side_effect=RuntimeError("SignIn failed (401): bad credentials"),
         ):
             result = runner.invoke(
-                app, ["login", "--user", "u@example.com", "--password", "pw"]
+                app, ["auth", "login", "--user", "u@example.com", "--password", "pw"]
             )
 
         assert result.exit_code == 1
@@ -61,27 +63,11 @@ class TestLogoutCommand:
         cached_token: str,  # noqa: ARG002
     ) -> None:
         with patch("nemo_cli.commands.logout.clear_token") as mock_clear:
-            result = runner.invoke(app, ["logout"])
+            result = runner.invoke(app, ["auth", "logout"])
 
         assert result.exit_code == 0
         assert "Logged out" in result.output
         mock_clear.assert_called_once_with()
-
-
-class TestWhoamiCommand:
-    def test_reports_cached_token(self) -> None:
-        with patch("nemo_cli.commands.whoami.get_token", return_value="cached"):
-            result = runner.invoke(app, ["whoami"])
-
-        assert result.exit_code == 0
-        assert "Token: cached" in result.output
-
-    def test_reports_no_cached_token(self) -> None:
-        with patch("nemo_cli.commands.whoami.get_token", return_value=None):
-            result = runner.invoke(app, ["whoami"])
-
-        assert result.exit_code == 0
-        assert "not cached" in result.output
 
 
 class TestStatusCommand:
@@ -89,7 +75,7 @@ class TestStatusCommand:
         with patch(
             "nemo_cli.commands.status.session_status", return_value=AuthStatus.ACTIVE
         ):
-            result = runner.invoke(app, ["status"])
+            result = runner.invoke(app, ["auth", "status"])
 
         assert result.exit_code == 0
         assert "active" in result.output
@@ -99,7 +85,7 @@ class TestStatusCommand:
             "nemo_cli.commands.status.session_status",
             return_value=AuthStatus.LOGGED_OUT,
         ):
-            result = runner.invoke(app, ["status"])
+            result = runner.invoke(app, ["auth", "status"])
 
         assert result.exit_code == 0
         assert "logged out" in result.output
@@ -109,7 +95,7 @@ class TestStatusCommand:
             "nemo_cli.commands.status.session_status",
             return_value=AuthStatus.EXPIRING,
         ):
-            result = runner.invoke(app, ["status"])
+            result = runner.invoke(app, ["auth", "status"])
 
         assert result.exit_code == 0
         assert "expiring" in result.output
@@ -119,7 +105,7 @@ class TestStatusCommand:
             "nemo_cli.commands.status.session_status",
             return_value=AuthStatus.EXPIRED,
         ):
-            result = runner.invoke(app, ["status"])
+            result = runner.invoke(app, ["auth", "status"])
 
         assert result.exit_code == 0
         assert "expired" in result.output
