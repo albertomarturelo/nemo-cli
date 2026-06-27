@@ -8,6 +8,14 @@ Versioning policy and release process: [ADR-007](docs/decisions/007-versioning-a
 
 ## [Unreleased]
 
+### Added
+
+- **`nemo status` command** — reports the current authentication session state
+  (`active`, `expiring`, `expired`, or `logged out`) read from the cached token's
+  `exp`, with no network call. Backed by a new `nemo_cli.auth.session` layer that
+  encapsulates the login orchestration (`log_in`) and the session state (`status`)
+  above the raw `service` / `token_store` modules. (ADR-026)
+
 ### Changed
 
 - **Interactive login.** `nemo login` now prompts for email and password

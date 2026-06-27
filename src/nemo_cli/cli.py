@@ -5,6 +5,7 @@ from nemo_cli.commands.instruments import app as instruments_app
 from nemo_cli.commands.login import login
 from nemo_cli.commands.logout import logout
 from nemo_cli.commands.portfolio import app as portfolio_app
+from nemo_cli.commands.status import status
 from nemo_cli.commands.whoami import whoami
 
 app = typer.Typer(
@@ -38,6 +39,7 @@ def main_callback(
 app.command()(login)
 app.command()(logout)
 app.command()(whoami)
+app.command()(status)
 app.add_typer(instruments_app, name="instruments")
 app.add_typer(portfolio_app, name="portfolio")
 

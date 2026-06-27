@@ -1,7 +1,6 @@
 import typer
 
-from nemo_cli.auth.service import sign_in
-from nemo_cli.auth.token_store import set_token
+from nemo_cli.auth.session import log_in
 
 
 def login(
@@ -21,9 +20,8 @@ def login(
     email = user if user else typer.prompt("Email")
     secret = password if password else typer.prompt("Password", hide_input=True)
     try:
-        token = sign_in(email, secret)
+        log_in(email, secret)
     except Exception as error:
         typer.secho(str(error), fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from error
-    set_token(token)
     typer.secho("Login successful. Token cached.", fg=typer.colors.GREEN)

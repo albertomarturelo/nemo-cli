@@ -85,6 +85,7 @@ The cached bearer token is stored under your OS user-config directory, e.g. `~/L
 ```bash
 nemo login                              # authenticate and cache the token
 nemo whoami                             # show whether a token is currently cached
+nemo status                             # show the session state (active / expiring / expired / logged out)
 nemo logout                             # drop the cached token
 nemo instruments local --search BCI     # list Chilean instruments matching "BCI"
 nemo instruments international --search aapl --page-size 5
@@ -104,6 +105,7 @@ nemo <cmd> --help                       # per-command help
 | `login`                       | Authenticate against the configured broker portal and cache the bearer token.    |
 | `logout`                      | Clear the cached bearer token.                                                   |
 | `whoami`                      | Show whether an authentication token is currently cached.                        |
+| `status`                      | Show the current session state: `active`, `expiring`, `expired`, or `logged out`. |
 | `instruments local`           | List Chilean instruments. Filters: `--search`, `--classes`, `--page`, `--limit`. |
 | `instruments international`   | List US-listed assets. Filters: `--search`, `--exchange`, `--page`, `--page-size`. |
 | `instruments prices`          | Show ~1 year of daily prices for a local Chilean instrument (stats + sparkline). Flag: `--id`. **Local instruments only.** |
@@ -192,11 +194,11 @@ run them locally before opening a PR.
 ├── .claude/skills/                 # CFD skills (start/close-session, status, new-decision, validate-context, review-pr, issue-new/start)
 ├── src/nemo_cli/
 │   ├── cli.py, __main__.py         # Entry + Typer app
-│   ├── commands/                   # One module per subcommand (login, logout, whoami, instruments, portfolio)
+│   ├── commands/                   # One module per subcommand (login, logout, whoami, status, instruments, portfolio)
 │   ├── portfolio/                  # Holdings service + P&L / totals computation
 │   ├── instruments/                # Local + international market services + price history
 │   ├── api/client.py               # api_request — single point for portal HTTP
-│   ├── auth/                       # SignIn + RefreshToken calls and local token store
+│   ├── auth/                       # SignIn + RefreshToken calls, token store, session orchestration (log_in / status)
 │   └── config.py                   # Hardcoded base URL (no env vars)
 └── tests/                          # Unit tests, mirror src/nemo_cli/ tree
     ├── conftest.py                 # Shared fixtures (isolated token store, cached token)

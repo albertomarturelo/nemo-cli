@@ -55,7 +55,9 @@
 - **Auth layer** (`nemo_cli.auth`) — `service` obtains a token from the `SignIn`
   endpoint using credentials passed in by the `login` command (never read from the
   environment), and renews via `RefreshToken`; `token_store` persists and clears the
-  token locally.
+  token locally; `session` orchestrates above them — `log_in()` (sign-in + cache)
+  and `status()` (read-only session state from the token's `exp`), keeping the
+  commands thin (ADR-026).
 - **Config layer** (`nemo_cli.config`) — holds the hardcoded API base URL. It no
   longer reads environment variables: credentials are entered interactively via
   `nemo login` (ADR-025).
@@ -65,12 +67,12 @@
 | Module                       | Purpose                                                      | Key files                                |
 |------------------------------|--------------------------------------------------------------|------------------------------------------|
 | Entry                        | CLI bin and program assembly                                 | `src/nemo_cli/cli.py`, `__main__.py`   |
-| Commands                     | Subcommand handlers (login, logout, whoami, instruments, …)  | `src/nemo_cli/commands/`               |
+| Commands                     | Subcommand handlers (login, logout, whoami, status, instruments, …)  | `src/nemo_cli/commands/`       |
 | API                          | Authenticated HTTP client                                    | `src/nemo_cli/api/client.py`           |
-| Auth                         | SignIn + RefreshToken calls, JWT-exp peek, local token persistence | `src/nemo_cli/auth/`               |
+| Auth                         | SignIn + RefreshToken calls, JWT-exp peek, local token persistence, session orchestration (`log_in` / `status`) | `src/nemo_cli/auth/`     |
 | Instruments                  | Local + international market services and dataclasses        | `src/nemo_cli/instruments/`            |
 | Portfolio                    | Holdings service + computed totals (P&L, classification breakdown) + movements (dividends, trades, cash flows) | `src/nemo_cli/portfolio/`        |
-| Config                       | Env-var loader, hardcoded API base URL                       | `src/nemo_cli/config.py`               |
+| Config                       | Hardcoded API base URL (no env vars, ADR-025)                | `src/nemo_cli/config.py`               |
 
 ## API base URL and sub-prefixes
 

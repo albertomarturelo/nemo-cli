@@ -11,6 +11,11 @@ import json
 import time
 from typing import cast
 
+# Tokens within this many seconds of their `exp` are renewed proactively
+# (ADR-012) and reported as "expiring" by the auth session status (ADR-026).
+# Single source of truth shared by `api.client` and `auth.session`.
+PROACTIVE_REFRESH_SECONDS = 60
+
 
 def is_expiring_within(token: str, seconds: int) -> bool:
     """True if the JWT's `exp` claim is at most `seconds` away from now.
