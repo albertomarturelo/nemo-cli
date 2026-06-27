@@ -154,7 +154,7 @@ transport layer with [`respx`](https://github.com/lundberg/respx) — and no
 real filesystem writes outside `tmp_path`.
 
 ```bash
-pytest                                   # ~144 tests, ~98% line coverage
+pytest                                   # ~194 tests, ~98% line coverage
 pytest tests/portfolio/                  # one package
 pytest tests/portfolio/test_summary.py   # one file
 pytest -k "compute_totals"               # by name pattern
@@ -163,7 +163,7 @@ pytest -k "compute_totals"               # by name pattern
 What the suite covers:
 
 - Pure parsers (`_to_*`) and aggregators (`_compute_*`, `_sparkline`) — 100%.
-- HTTP services (`sign_in`, `api_request`, the four list / detail endpoints) — happy paths plus the 401-refresh-and-retry-once flow, mocked end-to-end with `respx`.
+- HTTP services (`sign_in`, `api_request`, the four list / detail endpoints) — happy paths plus the proactive/reactive `RefreshToken` renewal and the `Session expired — run nemo login` path, mocked end-to-end with `respx`.
 - CLI commands via `typer.testing.CliRunner` — table output, args passthrough, `--json` envelope shape, error paths exit `1`.
 
 Conventions for adding tests live in
@@ -196,10 +196,10 @@ run them locally before opening a PR.
 │   ├── portfolio/                  # Holdings service + P&L / totals computation
 │   ├── instruments/                # Local + international market services + price history
 │   ├── api/client.py               # api_request — single point for portal HTTP
-│   ├── auth/                       # SignIn call and local token store
-│   └── config.py                   # Env-var loader; hardcoded base URL
+│   ├── auth/                       # SignIn + RefreshToken calls and local token store
+│   └── config.py                   # Hardcoded base URL (no env vars)
 └── tests/                          # Unit tests, mirror src/nemo_cli/ tree
-    ├── conftest.py                 # Shared fixtures (env, isolated token store)
+    ├── conftest.py                 # Shared fixtures (isolated token store, cached token)
     ├── auth/, api/, instruments/, portfolio/, commands/
     └── test_cli.py, test_config.py
 ```
