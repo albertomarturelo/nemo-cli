@@ -2,15 +2,20 @@ from typing import cast
 
 import httpx
 
-from nemo_cli.config import API_BASE_URL, load_credentials
+from nemo_cli.config import API_BASE_URL
 
 
-def sign_in() -> str:
-    credentials = load_credentials()
+def sign_in(username: str, password: str) -> str:
+    """Exchange explicit credentials for a bearer token via the SignIn endpoint.
+
+    Credentials are passed in by the caller (the `login` command collects them
+    interactively or from flags) and are never read from the environment or
+    written to disk (ADR-025).
+    """
     url = f"{API_BASE_URL}/publicapi/shared/auth/SignIn"
     response = httpx.post(
         url,
-        json={"userName": credentials.user_name, "password": credentials.password},
+        json={"userName": username, "password": password},
         timeout=15.0,
     )
     if response.status_code >= 400:

@@ -35,8 +35,8 @@
              │
              ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│ nemo_cli.config        loads NEMO_USERNAME / NEMO_PASSWORD  │
-│                          via dotenv. Hardcodes API_BASE_URL.     │
+│ nemo_cli.config        Hardcodes API_BASE_URL. No env vars; │
+│                          credentials come from `nemo auth login`.     │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -50,24 +50,29 @@
   codes. They do not call `httpx` directly.
 - **API layer** (`nemo_cli.api.client`) — the only module that performs
   authenticated HTTP calls to the Vector portal. Centralises auth-header injection
-  and the `401 → refresh → retry` flow.
-- **Auth layer** (`nemo_cli.auth`) — `service` knows how to obtain a token from
-  the `SignIn` endpoint; `token_store` knows how to persist and clear it locally.
-- **Config layer** (`nemo_cli.config`) — loads and validates environment
-  variables, holds the hardcoded API base URL. The only module allowed to read
-  `os.environ` directly.
+  and the renewal flow: proactive/reactive `RefreshToken`, surfacing
+  `session expired — run nemo auth login` when renewal fails (ADR-025).
+- **Auth layer** (`nemo_cli.auth`) — `service` obtains a token from the `SignIn`
+  endpoint using credentials passed in by the `login` command (never read from the
+  environment), and renews via `RefreshToken`; `token_store` persists and clears the
+  token locally; `session` orchestrates above them — `log_in()` (sign-in + cache)
+  and `status()` (read-only session state from the token's `exp`), keeping the
+  commands thin (ADR-026).
+- **Config layer** (`nemo_cli.config`) — holds the hardcoded API base URL. It no
+  longer reads environment variables: credentials are entered interactively via
+  `nemo auth login` (ADR-025).
 
 ## Module Map
 
 | Module                       | Purpose                                                      | Key files                                |
 |------------------------------|--------------------------------------------------------------|------------------------------------------|
 | Entry                        | CLI bin and program assembly                                 | `src/nemo_cli/cli.py`, `__main__.py`   |
-| Commands                     | Subcommand handlers (login, logout, whoami, instruments, …)  | `src/nemo_cli/commands/`               |
+| Commands                     | Subcommand handlers — `auth` group (login, logout, status), instruments, portfolio  | `src/nemo_cli/commands/`       |
 | API                          | Authenticated HTTP client                                    | `src/nemo_cli/api/client.py`           |
-| Auth                         | SignIn + RefreshToken calls, JWT-exp peek, local token persistence | `src/nemo_cli/auth/`               |
+| Auth                         | SignIn + RefreshToken calls, JWT-exp peek, local token persistence, session orchestration (`log_in` / `status`) | `src/nemo_cli/auth/`     |
 | Instruments                  | Local + international market services and dataclasses        | `src/nemo_cli/instruments/`            |
 | Portfolio                    | Holdings service + computed totals (P&L, classification breakdown) + movements (dividends, trades, cash flows) | `src/nemo_cli/portfolio/`        |
-| Config                       | Env-var loader, hardcoded API base URL                       | `src/nemo_cli/config.py`               |
+| Config                       | Hardcoded API base URL (no env vars, ADR-025)                | `src/nemo_cli/config.py`               |
 
 ## API base URL and sub-prefixes
 
@@ -89,12 +94,15 @@ the explicit sub-prefix:
 2. `typer` dispatches to the matching handler in `nemo_cli.commands`.
 3. The handler calls `api_request()` for any portal request, never `httpx`
    directly.
-4. `api_request()` reads the cached token from `token_store`. If missing, it calls
-   `service.sign_in()` (which reads credentials via `config`), receives a bearer
-   token, and persists it.
-5. The request is sent with `Authorization: Bearer <token>`. On `401`, the cached
-   token is cleared, a fresh sign-in is performed, and the request is retried once.
-   A second `401` is surfaced as an error.
+4. The user first authenticates with `nemo auth login`, which collects credentials
+   (prompt or `--user` / `--password` flags), calls `service.sign_in(...)`, and
+   caches the returned bearer token. Credentials are never stored.
+5. `api_request()` reads the cached token from `token_store`. If it is close to
+   expiry it renews via `RefreshToken` first. The request is then sent with
+   `Authorization: Bearer <token>`. On `401`, it tries `RefreshToken` once and
+   retries; if renewal fails (or no token is cached) it raises
+   `Session expired — run nemo auth login` — there are no stored credentials to
+   re-`SignIn` (ADR-025).
 6. The handler renders the result to stdout (`typer.echo` / `typer.secho`) and
    exits with `0` on success or `1` on failure (via `typer.Exit`).
 

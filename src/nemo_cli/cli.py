@@ -1,11 +1,9 @@
 import typer
 
 from nemo_cli import __version__
+from nemo_cli.commands.auth import app as auth_app
 from nemo_cli.commands.instruments import app as instruments_app
-from nemo_cli.commands.login import login
-from nemo_cli.commands.logout import logout
 from nemo_cli.commands.portfolio import app as portfolio_app
-from nemo_cli.commands.whoami import whoami
 
 app = typer.Typer(
     name="nemo",
@@ -35,9 +33,7 @@ def main_callback(
     """Personal CLI for Chilean stockbroker portals."""
 
 
-app.command()(login)
-app.command()(logout)
-app.command()(whoami)
+app.add_typer(auth_app, name="auth")
 app.add_typer(instruments_app, name="instruments")
 app.add_typer(portfolio_app, name="portfolio")
 

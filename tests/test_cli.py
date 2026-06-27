@@ -24,7 +24,7 @@ class TestVersionFlag:
     def test_version_short_circuits_before_subcommand(self) -> None:
         # --version is eager; even if invoked alongside a subcommand, it prints
         # the version and exits without running the subcommand.
-        result = runner.invoke(app, ["--version", "whoami"])
+        result = runner.invoke(app, ["--version", "instruments"])
         assert result.exit_code == 0
         assert f"nemo {__version__}" in result.output
 
@@ -33,7 +33,7 @@ class TestRootHelp:
     def test_help_lists_all_subcommand_groups(self) -> None:
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
-        for command in ("login", "logout", "whoami", "instruments", "portfolio"):
+        for command in ("auth", "instruments", "portfolio"):
             assert command in result.output
 
     def test_no_args_shows_help(self) -> None:

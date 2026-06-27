@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json as _json
+
 import httpx
 import pytest
 import respx
@@ -15,92 +17,73 @@ REFRESH_URL = f"{API_BASE_URL}/publicapi/shared/auth/RefreshToken"
 
 class TestSignIn:
     @respx.mock
-    def test_returns_token_on_success(self, credentials_env: None) -> None:
+    def test_returns_token_on_success(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(200, json={"token": "fresh.jwt.token"})
         )
-        assert sign_in() == "fresh.jwt.token"
+        assert sign_in("u@example.com", "pw") == "fresh.jwt.token"
 
     @respx.mock
-    def test_posts_credentials_in_request_body(
-        self, credentials_env: None  # noqa: ARG002
-    ) -> None:
+    def test_posts_credentials_in_request_body(self) -> None:
         route = respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(200, json={"token": "t"})
         )
-        sign_in()
+        sign_in("test@example.com", "test-password")
         assert route.called
         sent = route.calls.last.request.read()
-        # Body is JSON-encoded credentials.
-        import json as _json
-
+        # The explicit credentials are forwarded as the JSON request body.
         assert _json.loads(sent) == {
             "userName": "test@example.com",
             "password": "test-password",
         }
 
     @respx.mock
-    def test_raises_on_4xx(self, credentials_env: None) -> None:
+    def test_raises_on_4xx(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(401, text="Invalid credentials")
         )
         with pytest.raises(RuntimeError, match=r"SignIn failed \(401"):
-            sign_in()
+            sign_in("u@example.com", "pw")
 
     @respx.mock
-    def test_raises_on_5xx(self, credentials_env: None) -> None:
+    def test_raises_on_5xx(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(500, text="boom")
         )
         with pytest.raises(RuntimeError, match=r"SignIn failed \(500"):
-            sign_in()
+            sign_in("u@example.com", "pw")
 
     @respx.mock
-    def test_raises_when_payload_is_not_object(
-        self, credentials_env: None
-    ) -> None:
+    def test_raises_when_payload_is_not_object(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(200, json=["not", "an", "object"])
         )
         with pytest.raises(RuntimeError, match="not a JSON object"):
-            sign_in()
+            sign_in("u@example.com", "pw")
 
     @respx.mock
-    def test_raises_when_token_missing(
-        self, credentials_env: None
-    ) -> None:
+    def test_raises_when_token_missing(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(200, json={"other": "field"})
         )
         with pytest.raises(RuntimeError, match="missing top-level 'token' string"):
-            sign_in()
+            sign_in("u@example.com", "pw")
 
     @respx.mock
-    def test_raises_when_token_is_empty(
-        self, credentials_env: None
-    ) -> None:
+    def test_raises_when_token_is_empty(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(200, json={"token": ""})
         )
         with pytest.raises(RuntimeError, match="missing top-level 'token' string"):
-            sign_in()
+            sign_in("u@example.com", "pw")
 
     @respx.mock
-    def test_raises_when_token_is_not_string(
-        self, credentials_env: None
-    ) -> None:
+    def test_raises_when_token_is_not_string(self) -> None:
         respx.post(SIGN_IN_URL).mock(
             return_value=httpx.Response(200, json={"token": 12345})
         )
         with pytest.raises(RuntimeError, match="missing top-level 'token' string"):
-            sign_in()
-
-    def test_raises_when_credentials_missing(
-        self, no_credentials_env: None
-    ) -> None:
-        # No HTTP call should be made; load_credentials raises first.
-        with pytest.raises(RuntimeError, match="Missing credentials"):
-            sign_in()
+            sign_in("u@example.com", "pw")
 
 
 class TestRefreshToken:

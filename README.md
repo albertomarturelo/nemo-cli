@@ -8,9 +8,9 @@ A personal command-line tool to inspect your holdings on Chilean stockbroker por
 
 ## Highlights
 
-- One-command authentication — `nemo login` exchanges credentials for a token and caches it per user.
-- Transparent token refresh — every authenticated call retries once on `401` after re-authenticating.
-- Credentials live in environment variables; only the short-lived token is persisted.
+- One-command authentication — `nemo auth login` prompts for your credentials, exchanges them for a token, and caches it per user.
+- Transparent token refresh — authenticated calls renew the token via `RefreshToken` before it expires; when the session fully expires you simply re-run `nemo auth login`.
+- Credentials are entered interactively and never written to disk; only the short-lived token is persisted.
 - Browse Chilean and US-listed instruments — `nemo instruments local` / `nemo instruments international`, with `--json` output for downstream agent / scripted consumption.
 - Inspect your portfolio — `nemo portfolio summary` returns each holding plus computed P&L and totals by classification.
 - 1-year price history per local instrument — `nemo instruments prices --id <ID>` with stats (total return, σ, min/max) and an ASCII sparkline.
@@ -67,30 +67,25 @@ pipx uninstall nemo-cli
 
 ## Configuration
 
-Credentials are read from environment variables. The simplest way is a `.env` file at the project root (or your shell session):
+There is nothing to configure before signing in — no environment variables and no `.env` file. Authenticate interactively:
 
 ```bash
-cp .env.example .env
-# then edit .env with your credentials
+nemo auth login                    # prompts for email and password (hidden)
+nemo auth login --user you@mail.cl # prompts only for the password
 ```
 
-| Variable           | Required | Description               |
-|--------------------|----------|---------------------------|
-| `NEMO_USERNAME`  | yes      | Email used to sign in     |
-| `NEMO_PASSWORD`  | yes      | Account password          |
+`--user` / `--password` are accepted for non-interactive use, but passing the password as a flag leaves it in your shell history — prefer the prompt. Credentials are sent to the broker's `SignIn` endpoint and **never written to disk**; only the resulting bearer token is cached.
 
 > The Vector API base URL is intentionally hardcoded in `nemo_cli.config`. There is no env override; if you need one (e.g. for a staging environment), add an ADR first.
 
-> The `.env` file is gitignored. Never commit real credentials.
-
-The cached bearer token is stored under your OS user-config directory, e.g. `~/Library/Application Support/nemo-cli/token.json` on macOS. Run `nemo logout` to clear it.
+The cached bearer token is stored under your OS user-config directory, e.g. `~/Library/Application Support/nemo-cli/token.json` on macOS. Run `nemo auth logout` to clear it. When the cached session fully expires, commands fail with `Session expired — run nemo auth login`; just sign in again.
 
 ## Usage
 
 ```bash
-nemo login                              # authenticate and cache the token
-nemo whoami                             # show the configured user and token state
-nemo logout                             # drop the cached token
+nemo auth login                         # authenticate and cache the token
+nemo auth status                        # show the session state (active / expiring / expired / logged out)
+nemo auth logout                        # drop the cached token
 nemo instruments local --search BCI     # list Chilean instruments matching "BCI"
 nemo instruments international --search aapl --page-size 5
 nemo instruments prices --id 52185      # 1-year price history (local instruments only)
@@ -106,9 +101,9 @@ nemo <cmd> --help                       # per-command help
 
 | Command                       | Description                                                                      |
 |-------------------------------|----------------------------------------------------------------------------------|
-| `login`                       | Authenticate against the configured broker portal and cache the bearer token.    |
-| `logout`                      | Clear the cached bearer token.                                                   |
-| `whoami`                      | Show the configured user and whether a token is currently cached.                |
+| `auth login`                  | Authenticate against the configured broker portal and cache the bearer token.    |
+| `auth logout`                 | Clear the cached bearer token.                                                   |
+| `auth status`                 | Show the current session state: `active`, `expiring`, `expired`, or `logged out`. |
 | `instruments local`           | List Chilean instruments. Filters: `--search`, `--classes`, `--page`, `--limit`. |
 | `instruments international`   | List US-listed assets. Filters: `--search`, `--exchange`, `--page`, `--page-size`. |
 | `instruments prices`          | Show ~1 year of daily prices for a local Chilean instrument (stats + sparkline). Flag: `--id`. **Local instruments only.** |
@@ -159,7 +154,7 @@ transport layer with [`respx`](https://github.com/lundberg/respx) — and no
 real filesystem writes outside `tmp_path`.
 
 ```bash
-pytest                                   # ~144 tests, ~98% line coverage
+pytest                                   # ~194 tests, ~98% line coverage
 pytest tests/portfolio/                  # one package
 pytest tests/portfolio/test_summary.py   # one file
 pytest -k "compute_totals"               # by name pattern
@@ -168,7 +163,7 @@ pytest -k "compute_totals"               # by name pattern
 What the suite covers:
 
 - Pure parsers (`_to_*`) and aggregators (`_compute_*`, `_sparkline`) — 100%.
-- HTTP services (`sign_in`, `api_request`, the four list / detail endpoints) — happy paths plus the 401-refresh-and-retry-once flow, mocked end-to-end with `respx`.
+- HTTP services (`sign_in`, `api_request`, the four list / detail endpoints) — happy paths plus the proactive/reactive `RefreshToken` renewal and the `Session expired — run nemo auth login` path, mocked end-to-end with `respx`.
 - CLI commands via `typer.testing.CliRunner` — table output, args passthrough, `--json` envelope shape, error paths exit `1`.
 
 Conventions for adding tests live in
@@ -197,14 +192,14 @@ run them locally before opening a PR.
 ├── .claude/skills/                 # CFD skills (start/close-session, status, new-decision, validate-context, review-pr, issue-new/start)
 ├── src/nemo_cli/
 │   ├── cli.py, __main__.py         # Entry + Typer app
-│   ├── commands/                   # One module per subcommand (login, logout, whoami, instruments, portfolio)
+│   ├── commands/                   # Subcommands: auth group (login/logout/status) + instruments, portfolio
 │   ├── portfolio/                  # Holdings service + P&L / totals computation
 │   ├── instruments/                # Local + international market services + price history
 │   ├── api/client.py               # api_request — single point for portal HTTP
-│   ├── auth/                       # SignIn call and local token store
-│   └── config.py                   # Env-var loader; hardcoded base URL
+│   ├── auth/                       # SignIn + RefreshToken calls, token store, session orchestration (log_in / status)
+│   └── config.py                   # Hardcoded base URL (no env vars)
 └── tests/                          # Unit tests, mirror src/nemo_cli/ tree
-    ├── conftest.py                 # Shared fixtures (env, isolated token store)
+    ├── conftest.py                 # Shared fixtures (isolated token store, cached token)
     ├── auth/, api/, instruments/, portfolio/, commands/
     └── test_cli.py, test_config.py
 ```
@@ -261,8 +256,8 @@ Before ending, run the `/close-session` skill — it performs the non-negotiable
 
 ## Security
 
-- Credentials never touch disk through this CLI. They are read from `os.environ` at command time.
+- Credentials never touch disk through this CLI. They are entered interactively at `nemo auth login` and sent straight to the broker's `SignIn` endpoint.
 - Only the bearer token is persisted, in a per-user JSON file under your OS config directory.
-- Run `nemo logout` (or delete the JSON file) to revoke the local session at any time.
+- Run `nemo auth logout` (or delete the JSON file) to revoke the local session at any time.
 
 To report a vulnerability, see [`SECURITY.md`](SECURITY.md) (private reporting — please do not open a public issue). Contribution scope is described in [`CONTRIBUTING.md`](CONTRIBUTING.md).

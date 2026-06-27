@@ -8,6 +8,38 @@ Versioning policy and release process: [ADR-007](docs/decisions/007-versioning-a
 
 ## [Unreleased]
 
+### Added
+
+- **`nemo auth` command group** — the authentication verbs are now grouped under
+  `nemo auth` (mirroring `instruments` / `portfolio`): `nemo auth login`,
+  `nemo auth logout`, `nemo auth status`. (ADR-027)
+- **`nemo auth status`** — reports the current authentication session state
+  (`active`, `expiring`, `expired`, or `logged out`) read from the cached token's
+  `exp`, with no network call. Backed by a new `nemo_cli.auth.session` layer that
+  encapsulates the login orchestration (`log_in`) and the session state (`status`)
+  above the raw `service` / `token_store` modules. (ADR-026)
+
+### Changed
+
+- **Interactive login.** `nemo auth login` now prompts for email and password
+  (password hidden), with optional `--user` / `--password` flags for
+  non-interactive use. Credentials are passed explicitly to `sign_in()` and are
+  never read from the environment or written to disk. (ADR-025)
+
+### Removed
+
+- **`nemo whoami` command.** Superseded by `nemo auth status`, which reports a
+  superset of what `whoami` showed (the cache check plus the session state).
+  (ADR-027)
+- **`NEMO_USERNAME` / `NEMO_PASSWORD` environment variables.** Credentials are no
+  longer read from the environment (or a `.env` file); the `python-dotenv`
+  dependency and `.env.example` are removed. Authenticate with `nemo auth login`.
+  (ADR-025)
+- **Automatic re-`SignIn` on expiry.** `api_request()` no longer re-authenticates
+  silently from stored credentials. On token expiry it renews via `RefreshToken`;
+  if that fails it raises a `Session expired` error directing the user to
+  `nemo auth login`. This amends the `401` ladder of ADR-003 / ADR-012. (ADR-025)
+
 ## [0.0.1] - 2026-06-04
 
 Initial public release on TestPyPI. The CLI is functional but versioned

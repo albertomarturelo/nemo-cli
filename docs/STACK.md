@@ -14,7 +14,6 @@
 |------------------|----------|------------------------------------------------------------------|
 | `typer`          | ≥ 0.12   | CLI framework — type-hint-driven, built on `click`.              |
 | `httpx`          | ≥ 0.27   | HTTP client. Sync API used; async available if ever needed.      |
-| `python-dotenv`  | ≥ 1.0    | Loads `NEMO_USERNAME` / `NEMO_PASSWORD` from `.env`.         |
 | `platformdirs`   | ≥ 4.0    | Cross-platform user-config directory for the cached token.      |
 | `rich`           | ≥ 13.0   | Table rendering for `instruments` listings and other tabular UX. Already a transitive dep of `typer`; declared explicitly per ADR-006. |
 

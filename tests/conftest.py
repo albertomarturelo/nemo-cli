@@ -2,23 +2,36 @@
 
 from __future__ import annotations
 
+import base64
+import json
+import time
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
 
 @pytest.fixture
-def credentials_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Populate NEMO_USERNAME / NEMO_PASSWORD with deterministic test values."""
-    monkeypatch.setenv("NEMO_USERNAME", "test@example.com")
-    monkeypatch.setenv("NEMO_PASSWORD", "test-password")
+def jwt_factory() -> Callable[[int], str]:
+    """Return a builder for a minimal JWT whose `exp` is `now + offset` seconds.
 
+    Negative offsets produce already-expired tokens; large positive offsets
+    produce comfortably-fresh ones. Only the `exp` claim and the three-segment
+    shape matter to the readers (`auth.jwt`, `auth.session`, `api.client`).
+    """
 
-@pytest.fixture
-def no_credentials_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Remove credentials from the environment so load_credentials() fails."""
-    monkeypatch.delenv("NEMO_USERNAME", raising=False)
-    monkeypatch.delenv("NEMO_PASSWORD", raising=False)
+    def _build(exp_offset_seconds: int) -> str:
+        header = base64.urlsafe_b64encode(b'{"alg":"none"}').rstrip(b"=").decode()
+        payload = (
+            base64.urlsafe_b64encode(
+                json.dumps({"exp": int(time.time()) + exp_offset_seconds}).encode()
+            )
+            .rstrip(b"=")
+            .decode()
+        )
+        return f"{header}.{payload}.signature"
+
+    return _build
 
 
 @pytest.fixture

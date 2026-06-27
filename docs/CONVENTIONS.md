@@ -9,15 +9,17 @@
   classes `PascalCase`, constants `UPPER_SNAKE_CASE`.
 - Imports are absolute (`from nemo_cli.api.client import api_request`), never
   relative.
-- Only `nemo_cli.config` is allowed to read `os.environ` directly. Every other
-  module imports typed accessors from there.
+- Only `nemo_cli.config` may read `os.environ` directly, should a future env var
+  appear. Today nothing reads the environment — credentials are entered
+  interactively, not via env vars (ADR-025).
 
 ## HTTP
 
 - All requests to the Vector portal go through `api_request()` in
   `nemo_cli.api.client`. No `httpx.request(...)` calls in command handlers or
-  services. The only exception is `nemo_cli.auth.service.sign_in`, which is the
-  bootstrap call.
+  services. The only exceptions are the bootstrap calls in
+  `nemo_cli.auth.service` — `sign_in` and `refresh_token` — which `api_request`
+  itself relies on to obtain and renew the token (consistent with `CLAUDE.md`).
 - Endpoint paths passed to `api_request()` are *relative* to the configured base URL
   (e.g. `/shared/auth/SignIn`, not the full URL).
 - Response shapes from the Vector API are typed at the call site, in the module that
@@ -54,13 +56,17 @@ When you discover a new slow endpoint:
 
 ## Authentication
 
-- Credentials live exclusively in environment variables (`NEMO_USERNAME`,
-  `NEMO_PASSWORD`). They are never written to disk by this CLI.
+- Credentials are entered interactively via `nemo auth login` (or the `--user` /
+  `--password` flags) and passed explicitly to `sign_in()`. They are read from no
+  environment variable and **never written to disk** by this CLI (ADR-025).
 - The bearer token is cached as JSON at
   `platformdirs.user_config_path("nemo-cli") / "token.json"`. On macOS this lands
   in `~/Library/Application Support/nemo-cli/token.json`.
-- A `401` response invalidates the cached token, triggers a fresh `SignIn`, and
-  retries the original request **once**. A second `401` is surfaced as an error.
+- Token renewal is the `RefreshToken` flow (ADR-012): proactive renewal when the
+  cached JWT is within 60s of expiry, and a reactive renewal on `401`. When
+  `RefreshToken` itself fails (or there is no cached token), `api_request()` raises
+  `Session expired — run nemo auth login` and exits — it does **not** re-`SignIn`, since
+  no credentials are stored (ADR-025, amending ADR-003 / ADR-012).
 
 ## Error handling
 
@@ -96,11 +102,11 @@ When you discover a new slow endpoint:
 - HTTP mocking goes through **`respx`** (transport-level interception of
   `httpx`). No real network calls in any test; no sandbox account exists.
 - Shared fixtures live in `tests/conftest.py`:
-  - `credentials_env` / `no_credentials_env` — toggle `NEMO_USERNAME` /
-    `NEMO_PASSWORD` deterministically.
   - `isolated_token_store` — redirects the token-cache file to a per-test
     `tmp_path`, so tests never touch the user's real config dir.
   - `cached_token` — pre-populates the isolated store with a known token.
+  - Login tests pass credentials via `CliRunner(input=...)` (prompt path) or
+    `--user` / `--password` flags, mocking `sign_in` — no env-var fixtures exist.
 - CLI commands are tested via `typer.testing.CliRunner`, mocking the
   underlying service functions with `unittest.mock.patch` (avoids the
   `respx` round-trip when only the wiring is under test).
@@ -144,9 +150,11 @@ template (ADR-021), not only in `CURRENT_STATUS.md`.
 
 ## Patterns we explicitly avoid
 
-- **No module-level mutable state** beyond the `dotenv.load_dotenv()` call in
-  `config`. Pass dependencies as arguments where it would otherwise be tempting.
-- **No silent fallbacks** for missing credentials — fail loudly at startup of any
-  command that needs them.
+- **No module-level mutable state.** Pass dependencies as arguments where it would
+  otherwise be tempting. (The former `dotenv.load_dotenv()` call in `config` is gone
+  — ADR-025.)
+- **No silent fallbacks** for missing auth — `nemo auth login` prompts for any credential
+  not supplied, and a command run without a cached token fails loudly with
+  `Session expired — run nemo auth login` rather than silently re-authenticating.
 - **No new third-party HTTP / config dependencies** without an ADR. The current set
   is intentionally minimal.
